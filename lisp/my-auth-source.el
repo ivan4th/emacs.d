@@ -4,7 +4,6 @@
 (defvar auth-source-1pw-mappings '())
 (defvar auth-source-1pw-mappings-src '())
 
-
 (defun auth-source-1pw-mappings ()
   (if auth-source-1pw-mappings-initialized
       auth-source-1pw-mappings
@@ -42,7 +41,6 @@
 		     (error "bad 1password secret spec: %S" spec))))))
   (auth-source-1password-enable))
 
-;; TODO: must be lazy!!!
 (defun define-auth-source-1pw-mapping (host user spec)
   "Add 1password auth-source mapping for the specified host and user.
   spec can be a string, in which case it's interpreted as a
