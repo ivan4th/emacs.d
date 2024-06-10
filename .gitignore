@@ -1,0 +1,19 @@
+recentf
+tramp
+history
+auto-save-list
+elpa
+eln-cache
+straight/build/
+straight/repos/
+straight/build-cache.el
+transient/
+request/
+.lsp-session*
+forge-database.sqlite
+projectile-bookmarks.eld
+bookmarks
+
+# these should be symlinked
+custom/*
+site-*.el

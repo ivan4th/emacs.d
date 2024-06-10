@@ -1,0 +1,19 @@
+* TODO tree-sitter
+  https://www.reddit.com/r/emacs/comments/zqshfy/comment/j0zpwyo/
+  #+BEGIN_SRC emacs-lisp
+  (push '(css-mode . css-ts-mode) major-mode-remap-alist)
+  (push '(python-mode . python-ts-mode) major-mode-remap-alist)
+  (push '(javascript-mode . js-ts-mode) major-mode-remap-alist)
+  (push '(js-json-mode . json-ts-mode) major-mode-remap-alist)
+  (push '(typescript-mode . typescript-ts-mode) major-mode-remap-alist)
+  (push '(c-mode . c-ts-mode) major-mode-remap-alist)
+  (push '(c++-mode . c++-ts-mode) major-mode-remap-alist)
+  #+END_SRC
+* TODO ielm improvements
+  https://www.n16f.net/blog/making-ielm-more-comfortable/
+* To check
+** TODO yaml-pro
+   https://github.com/zkry/yaml-pro
+* Bugs
+** TODO Fix use-package function warnings
+   https://github.com/jwiegley/use-package/pull/1059
