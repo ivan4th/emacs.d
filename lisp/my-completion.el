@@ -50,7 +50,11 @@
 (use-package orderless
   :init
   ;; & is for company because space will break completion (FIXME: check)
-  (setq completion-styles '(orderless partial-completion basic)
+  ;; basic goes before orderless to have prefix-based completions first, esp.
+  ;; in Emacs Lisp company completion
+  ;; https://github.com/company-mode/company-mode/discussions/1246#discussioncomment-1528569
+  ;; Note that yasnippet may cause some problems later on too (see following comments there)
+  (setq completion-styles '(basic orderless partial-completion)
         orderless-component-separator "[ &]"
 	completion-category-defaults nil
 	completion-category-overrides '((file (styles basic partial-completion))
