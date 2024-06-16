@@ -1,6 +1,9 @@
 ;; -*- lexical-binding: t -*-
 
 (use-package slime)
+;; TODO: try using company+CAPF instead of slime-company
+;; and also use the idea from SLY regarding :company-kind
+;; https://github.com/joaotavora/sly/commit/d41c1e4ebb656aa903b3cfb7b10cf88056c5928d
 (use-package slime-company
   :after (slime company)
   :config (setq slime-company-completion 'fuzzy

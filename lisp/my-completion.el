@@ -76,7 +76,8 @@
 	;; remove annoying blinking
 	company-echo-delay 0
 	;; start autocompletion only after typing
-	company-begin-commands '(self-insert-command))
+	company-begin-commands '(self-insert-command)
+	company-tooltip-align-annotations t)
   (global-company-mode))
 
 
