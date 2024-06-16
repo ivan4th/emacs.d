@@ -48,15 +48,7 @@
 (require 'my-vterm)
 (require 'my-yaml)
 (require 'my-chatgpt)
-
-(defcustom i4-slime-dir "" "SLIME directory"
-  :type 'string
-  :group 'i4-config)
-
-;; TODO: for now SLIME has special handling
-(when (and (not (string= i4-slime-dir ""))
-	   (file-exists-p i4-slime-dir))
-  (require 'my-slime))
+(require 'my-slime)
 
 ;; FIXME: this should not be needed
 (load custom-file)

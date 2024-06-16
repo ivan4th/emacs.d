@@ -1,18 +1,21 @@
 ;; -*- lexical-binding: t -*-
 
-(setq slime-net-coding-system 'utf-8-unix)
+(use-package slime)
+(use-package slime-company
+  :after (slime company)
+  :config (setq slime-company-completion 'fuzzy
+                slime-company-after-completion 'slime-company-just-one-space))
 
-;; TODO: this wants to be rewritten
-(add-to-list 'load-path i4-slime-dir)
-(add-to-list 'load-path (concat (file-name-as-directory i4-slime-dir) "contrib"))
+(setq slime-net-coding-system 'utf-8-unix)
 
 (add-hook 'slime-repl-mode-hook
           (lambda ()
+	    (slime-company-maybe-enable) ;; FIXME: this shouldn't be needed
             (paredit-mode +1)
             (setf slime-complete-symbol-function
                   'slime-fuzzy-complete-symbol)))
 
-(setf slime-backend (concat (file-name-as-directory i4-slime-dir) "swank-loader.lisp")
+(setf ;; slime-backend (concat (file-name-as-directory i4-slime-dir) "swank-loader.lisp")
       inhibit-splash-screen t)
 
 (require 'slime)
@@ -26,6 +29,7 @@
 	       slime-indentation slime-fancy-inspector slime-c-p-c
 	       slime-presentations slime-xref-browser
 	       slime-fontifying-fu
+	       slime-company
                ;; slime-js
                )) ;; FIXME: slime-fancy broke due to slime-package-fu
 (slime-require :swank-listener-hooks)
@@ -76,6 +80,7 @@
 
 (add-hook 'slime-mode-hook
           #'(lambda ()
+	      (slime-company-maybe-enable) ;; FIXME: this shouldn't be needed
               (local-set-key "\C-cit" 'i4-vtf-run-test)
               (local-set-key "\C-cil" 'i4-vtf-run-last-test)
               (local-set-key [f7] 'i4-lisp-toggle-unit-test)
@@ -158,8 +163,8 @@
   ;;(slime-sync-package-and-default-directory)
   )
 
-(pushnew ".lx64fsl" completion-ignored-extensions :test #'equal)
-(pushnew ".lafsl" completion-ignored-extensions :test #'equal)
+(cl-pushnew ".lx64fsl" completion-ignored-extensions :test #'equal)
+(cl-pushnew ".lafsl" completion-ignored-extensions :test #'equal)
 
 ;; (set-default 'slime-filename-translations
 ;;              (list (list "^\\(rpibuilder\\)"
