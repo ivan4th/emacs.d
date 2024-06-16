@@ -30,6 +30,7 @@ If BASE-URL is not specified, it defaults to `openai-base-url'."
 
 (use-package chatgpt
   :straight (chatgpt :type git :host github :repo "emacs-openai/chatgpt")
+  :bind (("C-c i a" . chatgpt))
   :after (openai)
   :config
   (setq chatgpt-window-prompt ""))
