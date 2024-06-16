@@ -43,6 +43,19 @@
   (setenv "CGO_LDFLAGS" (sm-path "-LSMDIR/build/ -Wl,-rpath,@loader_path -Wl,-rpath,SMDIR/build/"))
   (setenv "TEST_LOG_LEVEL" "debug"))
 
+;; FIXME: this needs some getting used to
+;; (use-package gotest
+;;   :bind (("C-c i t" . my-go-test)
+;; 	 ("C-c i l" . go-test-current-test-cache))
+;;   :init
+;;   (defun my-go-test (&optional arg)
+;;     (interactive "P")
+;;     (if arg
+;; 	(go-test-current-test)
+;;       (go-test-current-file))))
+
+(require 'my-go-test)
+
 ;; TODO: running tests (check existing options)
 ;; TODO: DAP (debugger)
 
