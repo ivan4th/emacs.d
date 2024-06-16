@@ -4,6 +4,7 @@
 
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
+(column-number-mode 1)
 (setq-default show-trailing-whitespace t)
 (setq dabbrev-case-replace nil
       dabbrev-case-fold-search nil
