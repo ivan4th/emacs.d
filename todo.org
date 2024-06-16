@@ -11,9 +11,17 @@
   #+END_SRC
 * TODO ielm improvements
   https://www.n16f.net/blog/making-ielm-more-comfortable/
+* TODO golangci-lint-langserver
+  https://github.com/nametake/golangci-lint-langserver
+* TODO jsonnet-language-server
+  https://github.com/grafana/jsonnet-language-server/blob/main/editor/emacs/jsonnet-language-server.el
+* TODO devcontainer
+  https://github.com/nohzafk/devcontainer-feature-emacs-lsp-bridge
 * To check
 ** TODO yaml-pro
    https://github.com/zkry/yaml-pro
+** TODO Embark
+   https://github.com/oantolin/embark
 * Bugs
 ** TODO Fix use-package function warnings
    https://github.com/jwiegley/use-package/pull/1059
