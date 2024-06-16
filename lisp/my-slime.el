@@ -78,13 +78,26 @@
   (interactive)
   (i4-vtf-do-run-test t))
 
+(defun my-slime-indent-and-complete-symbol ()
+  "Similar to slime-indent-and-complete-symbol, but using company-mode"
+  (interactive)
+  (let ((pos (point)))
+    (unless (get-text-property (line-beginning-position) 'slime-repl-prompt)
+      (lisp-indent-line))
+    (when (= pos (point))
+      (cond ((save-excursion (re-search-backward "[^() \n\t\r]+\\=" nil t))
+             (company-complete))
+            ((memq (char-before) '(?\t ?\ ))
+             (slime-echo-arglist))))))
+
 (add-hook 'slime-mode-hook
           #'(lambda ()
 	      (slime-company-maybe-enable) ;; FIXME: this shouldn't be needed
               (local-set-key "\C-cit" 'i4-vtf-run-test)
               (local-set-key "\C-cil" 'i4-vtf-run-last-test)
               (local-set-key [f7] 'i4-lisp-toggle-unit-test)
-              (local-set-key [tab] 'slime-indent-and-complete-symbol)))
+	      ;; (local-set-key [tab] 'slime-indent-and-complete-symbol)
+              (local-set-key [tab] 'my-slime-indent-and-complete-symbol)))
 
 (global-set-key "\C-cl" 'slime-selector)
 
