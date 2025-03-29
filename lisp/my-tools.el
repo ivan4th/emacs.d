@@ -130,6 +130,8 @@
 
 (global-set-key [f9] 'browse-url-at-point)
 
+;; FIXME: duplication
+
 (defun killemall (regexp)
   (interactive "sKill buffers with paths matching this regexp: ")
   (dolist (buffer (buffer-list))
@@ -142,6 +144,22 @@
       (when (and name (not (string-equal name ""))
                  (string-match regexp name))
         (kill-buffer buffer)))))
+
+(defun revemall (regexp)
+  (interactive "sRevert buffers with paths matching this regexp: ")
+  (dolist (buffer (buffer-list))
+    (let ((name (or (buffer-file-name buffer)
+                    (with-current-buffer buffer
+                      (when (boundp 'dired-directory)
+                        (if (consp dired-directory)
+                            (car dired-directory)
+                          dired-directory))))))
+      (when (and name (not (string-equal name ""))
+                 (string-match regexp name))
+	(message "%s -- %s" regexp name)
+	(with-current-buffer buffer
+          (ignore-errors
+	    (revert-buffer nil t)))))))
 
 (defun savemall (regexp)
   (interactive "sSave buffers with paths matching this regexp: ")
