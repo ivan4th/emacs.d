@@ -197,6 +197,13 @@
 (cl-pushnew ".lx64fsl" completion-ignored-extensions :test #'equal)
 (cl-pushnew ".lafsl" completion-ignored-extensions :test #'equal)
 
+(use-package lisp-mode
+  :straight (:type built-in)
+  :hook
+  (lisp-mode . paredit-mode)
+  (lisp-mode . (lambda () (setf indent-tabs-mode nil)))
+  :after (paredit))
+
 ;; (set-default 'slime-filename-translations
 ;;              (list (list "^\\(rpibuilder\\)"
 ;;                          (lambda (emacs-filename)
