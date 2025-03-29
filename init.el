@@ -50,6 +50,7 @@
 (require 'my-chatgpt)
 (require 'my-slime)
 (require 'my-markdown)
+(require 'my-ediff)
 
 ;; FIXME: this should not be needed
 (load custom-file)
