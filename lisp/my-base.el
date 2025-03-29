@@ -22,4 +22,6 @@
 (put 'downcase-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
 
+(global-set-key (kbd "M-o") 'overwrite-mode)
+
 (provide 'my-base)
