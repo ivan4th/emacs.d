@@ -57,6 +57,7 @@
   (emacs-lisp-mode . eldoc-mode)
   (emacs-lisp-mode . flycheck-mode)
   (emacs-lisp-mode . i-dont-like-trailing-whitespace)
+  (emacs-lisp-mode . (lambda () (setf indent-tabs-mode nil)))
   :bind (:map emacs-lisp-mode-map
 	      ([tab] . my-indent-and-complete-symbol)
 	      ("\C-c\C-z" . i4-switch-to-ielm))
