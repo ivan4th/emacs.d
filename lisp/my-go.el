@@ -1,9 +1,12 @@
 ;; -*- lexical-binding: t -*-
 
+(require 'my-copilot)
+
 (use-package go-mode
   :hook
   (go-mode . lsp)
   (go-mode . flycheck-mode)
+  (go-mode . copilot-mode)
   :init
   (add-hook 'go-mode-hook
 	    #'(lambda ()
