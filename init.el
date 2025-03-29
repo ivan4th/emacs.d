@@ -49,6 +49,7 @@
 (require 'my-yaml)
 (require 'my-chatgpt)
 (require 'my-slime)
+(require 'my-markdown)
 
 ;; FIXME: this should not be needed
 (load custom-file)
