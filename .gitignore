@@ -14,6 +14,7 @@ forge-database.sqlite
 projectile-bookmarks.eld
 bookmarks
 .cache
+.mc-lists.el
 
 # these should be symlinked
 custom/*
