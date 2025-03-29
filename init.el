@@ -51,6 +51,7 @@
 (require 'my-slime)
 (require 'my-markdown)
 (require 'my-ediff)
+(require 'my-mermaid)
 
 ;; FIXME: this should not be needed
 (load custom-file)
