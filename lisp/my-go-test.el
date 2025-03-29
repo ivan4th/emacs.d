@@ -4,7 +4,7 @@
 
 (require 'go-mode)
 
-(defvar i4-go-test-timeout-seconds 600)
+(defvar i4-go-test-timeout-seconds 1200)
 (defvar i4-go-extra-test-args "");; "-args -v 10 -logtostderr true"
 ;; (defvar i4-go-test-name-regexp "^[ \t]*func[ \t]+\\(Test[^ \t(]+\\)")
 (defvar i4-go-test-suite-name-regexp "^[ \t]*func[ \t]+\\(Test[^ \t(]+Suite\\)")
@@ -13,6 +13,13 @@
 (defvar i4-go-last-test-location nil)
 (defvar i4-go-test-command "go test")
 (defvar i4-go-test-race nil)
+
+(defun i4-go-test-toggle-race ()
+  (interactive)
+  (setf i4-go-test-race (not i4-go-test-race))
+  (message (if i4-go-test-race
+	       "Race detection ON"
+	     "Race detection OFF")))
 
 (defun i4-go-test-name ()
   (save-excursion
@@ -52,10 +59,11 @@
         (when with-test-name-p
           (i4-go-test-and-suite-name))))
 
-(defun i4-run-go-test (location)
+(defun i4-run-go-test (location &optional count)
   (setf i4-go-last-test-location location)
+  (unless count (setf count 1))
   ;; -count=1 disables Go test cache as it can be confusing at times
-  (compile (format "(cd '%s' && %s%s%s -count=1 -test.v -timeout %ds%s%s)"
+  (compile (format "(cd '%s' && %s%s%s -count=%d%s -timeout %ds%s%s)"
                    ;; FIXME: the following is not compatible with // +build !linux
                    ;; "(cd '%s' && %s%s -count=1 -test.v -timeout %ds%s%s $(ls *.go | egrep -v flycheck_))"
                    (cl-first location)
@@ -63,9 +71,17 @@
                    (if (eq system-type 'darwin) "GOOS=darwin " "")
                    i4-go-test-command
                    (if i4-go-test-race " -race" "")
+		   count
+                   (if (= count 1) " -test.v" " -failfast")
                    i4-go-test-timeout-seconds
                    (if (cl-second location)
-                       (format " -run '^%s$'" (cl-second location))
+                       (format " -run '^%s$'"
+			       ;; go test -run REGEXP splits REGEXP into smaller regexps
+			       ;; by slash (/) characters
+			       (replace-regexp-in-string
+				"/"
+				"$/^"
+				(cl-second location)))
                      "")
                    (if i4-go-extra-test-args
                        (concat " " i4-go-extra-test-args)
@@ -75,9 +91,9 @@
   (interactive "P")
   (i4-run-go-test (i4-go-test-location arg)))
 
-(defun i4-go-last-test ()
-  (interactive)
-  (i4-run-go-test (or i4-go-last-test-location (i4-go-test-location))))
+(defun i4-go-last-test (arg)
+  (interactive "p")
+  (i4-run-go-test (or i4-go-last-test-location (i4-go-test-location)) arg))
 
 (define-key go-mode-map "\C-cit" 'i4-go-test)
 (define-key go-mode-map "\C-cil" 'i4-go-last-test)
