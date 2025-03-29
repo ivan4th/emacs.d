@@ -93,6 +93,21 @@
             ((memq (char-before) '(?\t ?\ ))
              (slime-echo-arglist))))))
 
+(defun cffi-name ()
+  (interactive)
+  (let ((end-pos
+         (save-excursion
+           (re-search-forward "[ \t]\\|$")
+           (match-beginning 0))))
+    (unless (re-search-backward "[ \t]" (save-excursion (back-to-indentation) (point)) t)
+      (back-to-indentation))
+    (let ((name (buffer-substring-no-properties (point) end-pos)))
+      (delete-region (point) end-pos)
+      (insert (format "(%s \"%s\" :type )" (cl-substitute ?- ?_ name) name))
+      (backward-char))))
+
+(define-key slime-mode-map (kbd "M-s-z") 'cffi-name)
+
 (add-hook 'slime-mode-hook
           #'(lambda ()
 	      (slime-company-maybe-enable) ;; FIXME: this shouldn't be needed
