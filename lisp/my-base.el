@@ -14,7 +14,8 @@
       backup-directory-alist (quote ((".*" . "~/.emacs_backups/")))
       delete-old-versions t
       ;; do not load outdated .elc files
-      load-prefer-newer t)
+      load-prefer-newer t
+      confirm-kill-emacs 'yes-or-no-p)
 
 (put 'erase-buffer 'disabled nil)
 (put 'upcase-region 'disabled nil)
