@@ -58,6 +58,7 @@
 (require 'my-elmacro)
 (require 'my-yang)
 (require 'my-jenkinsfile)
+(require 'my-mcp)
 
 ;; FIXME: this should not be needed
 (load custom-file)
