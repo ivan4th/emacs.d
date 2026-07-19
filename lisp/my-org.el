@@ -35,7 +35,7 @@
     (list
      key description 'entry
      (list 'file+headline path "Tasks")
-      "* TODO %?\n  %i\n  %a")))
+      "* TODO %?\n  %i\n")))
 
 (defun i4-gen-org-templates ()
   (append
@@ -99,7 +99,8 @@
               (define-key org-mode-map [(shift down)] nil)
               (define-key org-mode-map [(shift left)] nil)
               (define-key org-mode-map [(shift right)] nil)
-              (define-key org-mode-map "\M--" nil)))
+              (define-key org-mode-map "\M--" nil)
+              (define-key org-mode-map (kbd "RET") #'org-return-indent)))
 
 ;; (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
