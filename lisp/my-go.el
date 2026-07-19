@@ -6,7 +6,7 @@
   :hook
   (go-mode . lsp)
   (go-mode . flycheck-mode)
-  (go-mode . copilot-mode)
+  ;; (go-mode . copilot-mode)
   :init
   (add-hook 'go-mode-hook
 	    #'(lambda ()
