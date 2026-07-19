@@ -52,6 +52,7 @@
 (require 'my-markdown)
 (require 'my-ediff)
 (require 'my-mermaid)
+(require 'my-jsonnet)
 
 ;; FIXME: this should not be needed
 (load custom-file)
@@ -63,4 +64,3 @@
 
 ;; TBD: yasnippet or other snippets
 ;; TBD: ediff
-;; TBD: jsonnet
