@@ -60,6 +60,7 @@
 (require 'my-jenkinsfile)
 (require 'my-mcp)
 (require 'my-claude)
+(require 'my-ledger)
 
 ;; FIXME: this should not be needed
 (load custom-file)
