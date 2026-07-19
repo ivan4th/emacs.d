@@ -55,6 +55,7 @@
 (require 'my-jsonnet)
 (require 'my-c)
 (require 'my-telega)
+(require 'my-elmacro)
 
 ;; FIXME: this should not be needed
 (load custom-file)
