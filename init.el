@@ -53,6 +53,7 @@
 (require 'my-ediff)
 (require 'my-mermaid)
 (require 'my-jsonnet)
+(require 'my-c)
 
 ;; FIXME: this should not be needed
 (load custom-file)
