@@ -161,6 +161,13 @@
 ;; Uncomment this to try out the built-in-to-Emacs function.
 ;;(defalias 'git-grep 'vc-git-grep)
 
+(defun my-filename-wo-tramp (path)
+  (if (tramp-tramp-file-p path)
+      (let ((localname (tramp-file-name-localname
+                        (tramp-dissect-file-name path))))
+        localname)
+    path))
+
 (defun git-grep (command-args)
   (interactive
    (let ((root (vc-git-root default-directory)))
@@ -172,15 +179,15 @@
             (format (concat
                      "cd %s && "
                      "git --no-pager grep %s -e %s")
-                    root
+                    (my-filename-wo-tramp root)
                     git-grep-switches
                     (let ((thing (and
-                                  ; don't snarf stuff from the
-                                  ; buffer if we're not looking
-                                  ; at a file.  Perhaps we
-                                  ; should also check to see if
-                                  ; the file is part of a git
-                                  ; repo.
+                                        ; don't snarf stuff from the
+                                        ; buffer if we're not looking
+                                        ; at a file.  Perhaps we
+                                        ; should also check to see if
+                                        ; the file is part of a git
+                                        ; repo.
 				  buffer-file-name
 				  (thing-at-point 'symbol))))
                       (or (and thing (progn
