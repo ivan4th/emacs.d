@@ -19,3 +19,9 @@ bookmarks
 # these should be symlinked
 custom/*
 site-*.el
+
+# machine-local state
+projects
+emojis/
+straight/modified/
+%backup%~
