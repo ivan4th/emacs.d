@@ -34,6 +34,39 @@
 (use-package forge
   :after (magit))
 
+;; Fix forge-create-pullreq--read-args defaults:
+;; 1. Source: also fall back to tracking branch (not just push branch)
+;; 2. Target: default to repo's default branch, not the source's upstream
+;;    (the upstream-following logic usually resolves back to the source branch,
+;;    which is deleted from candidates, leaving no default)
+(with-eval-after-load 'forge-commands
+  (defun my/forge-create-pullreq--read-args ()
+    (let* ((source (magit-completing-read
+                    "Source branch"
+                    (magit-list-remote-branch-names)
+                    nil t nil 'magit-revision-history
+                    (or (and-let* ((d (magit-branch-at-point)))
+                          (if (magit-remote-branch-p d)
+                              d
+                            (or (magit-get-push-branch d)
+                                (magit-get-upstream-branch d))))
+                        (and-let* ((d (magit-get-current-branch)))
+                          (if (magit-remote-branch-p d)
+                              d
+                            (or (magit-get-push-branch d)
+                                (magit-get-upstream-branch d)))))))
+           (repo    (forge-get-repository :tracked))
+           (remote  (oref repo remote))
+           (targets (delete source (magit-list-remote-branch-names remote)))
+           (target  (magit-completing-read
+                     "Target branch" targets nil t nil 'magit-revision-history
+                     (car (member (concat remote "/"
+                                          (or (oref repo default-branch) "master"))
+                                  targets)))))
+      (list source target)))
+  (advice-add 'forge-create-pullreq--read-args :override
+              #'my/forge-create-pullreq--read-args))
+
 (use-package git-link
   :bind (("\C-cgl" . git-link))
   :config
