@@ -56,6 +56,7 @@
 (require 'my-c)
 (require 'my-telega)
 (require 'my-elmacro)
+(require 'my-yang)
 
 ;; FIXME: this should not be needed
 (load custom-file)
