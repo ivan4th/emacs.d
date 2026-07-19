@@ -11,12 +11,14 @@
 
 (setq slime-net-coding-system 'utf-8-unix)
 
-(add-hook 'slime-repl-mode-hook
-          (lambda ()
-	    (slime-company-maybe-enable) ;; FIXME: this shouldn't be needed
-            (paredit-mode +1)
-            (setf slime-complete-symbol-function
-                  'slime-fuzzy-complete-symbol)))
+(defun my-slime-repl-mode-hook ()
+  (slime-company-maybe-enable) ;; FIXME: this shouldn't be needed
+  (paredit-mode +1)
+  (local-set-key "\C-cil" 'i4-vtf-run-last-test)
+  (setf slime-complete-symbol-function
+        'slime-fuzzy-complete-symbol))
+
+(add-hook 'slime-repl-mode-hook 'my-slime-repl-mode-hook)
 
 (setf ;; slime-backend (concat (file-name-as-directory i4-slime-dir) "swank-loader.lisp")
       inhibit-splash-screen t)
@@ -24,7 +26,7 @@
 (require 'slime)
 (set-default 'slime-when-complete-filename-expand t)
 (setq slime-lisp-implementations
-      '((sbcl ("sbcl" "--dynamic-space-size" "16384"))))
+      '((sbcl ("sbcl" "--dynamic-space-size" "16384" "--static-code-space-size" "256"))))
 (setq slime-use-autodoc-mode nil)
 (slime-setup '(slime-repl
 	       slime-tramp slime-asdf slime-scratch slime-autodoc
@@ -62,20 +64,44 @@
     (cons (downcase (match-string 1))
           (slime-current-package))))
 
+(defun my-slime-repl-send-command (command)
+  (with-current-buffer (slime-output-buffer)
+    (goto-char (point-max))
+    (insert command)
+    (insert "\n")
+    (slime-repl-send-input)))
+
 (defun i4-vtf-do-run-test (&optional last-p)
   (let ((test-name
          (if (or (not last-p) (not i4-vtf-last-test))
              (setf i4-vtf-last-test (i4-vtf-test-name))
            i4-vtf-last-test)))
     (message "Running test: %s" (car test-name))
-    (slime-repl-write-string (format "\n*** running test: %s ***\n" (car test-name)))
-    (slime-eval `(swank:interactive-eval ,(format "(progn (%s) (format t \"~&*** success ***\"))"
-                                                  (car test-name)))
-                (cdr test-name))))
+    ;; this version was not saving test name in history
+    ;; (slime-repl-write-string (format "\n*** running test: %s ***\n" (car test-name)))
+    ;; (slime-eval `(swank:interactive-eval ,(format "(progn (%s) (format t \"~&*** success ***\"))"
+    ;;                                               (car test-name)))
+    ;;             (cdr test-name))
+
+    ;; this way, we have test invocation in the REPL history
+    (my-slime-repl-send-command
+     (format "(%s::%s)"
+             (string-replace ":" "" (cdr test-name))
+             (car test-name)))))
 
 (defun i4-vtf-run-test (&optional raw-prefix-arg)
   (interactive "P")
   (i4-vtf-do-run-test))
+
+(defun i4-vtf-compilation-finished-test-hook (notes)
+  (remove-hook 'slime-compilation-finished-hook 'i4-vtf-compilation-finished-test-hook)
+  (i4-vtf-do-run-test))
+
+(defun i4-vtf-compile-run-test (&optional raw-prefix-arg)
+  (interactive "P")
+  (save-buffer)
+  (add-hook 'slime-compilation-finished-hook 'i4-vtf-compilation-finished-test-hook)
+  (slime-compile-defun))
 
 (defun i4-vtf-run-last-test ()
   (interactive)
@@ -108,14 +134,15 @@
 
 (define-key slime-mode-map (kbd "M-s-z") 'cffi-name)
 
-(add-hook 'slime-mode-hook
-          #'(lambda ()
-	      (slime-company-maybe-enable) ;; FIXME: this shouldn't be needed
-              (local-set-key "\C-cit" 'i4-vtf-run-test)
-              (local-set-key "\C-cil" 'i4-vtf-run-last-test)
-              (local-set-key [f7] 'i4-lisp-toggle-unit-test)
-	      ;; (local-set-key [tab] 'slime-indent-and-complete-symbol)
-              (local-set-key [tab] 'my-slime-indent-and-complete-symbol)))
+(defun my-slime-mode-hook ()
+  (slime-company-maybe-enable) ;; FIXME: this shouldn't be needed
+  (local-set-key "\C-cit" 'i4-vtf-compile-run-test)
+  (local-set-key "\C-cil" 'i4-vtf-run-last-test)
+  (local-set-key [f7] 'i4-lisp-toggle-unit-test)
+  ;; (local-set-key [tab] 'slime-indent-and-complete-symbol)
+  (local-set-key [tab] 'my-slime-indent-and-complete-symbol))
+
+(add-hook 'slime-mode-hook 'my-slime-mode-hook)
 
 (global-set-key "\C-cl" 'slime-selector)
 
@@ -216,6 +243,13 @@
 ;;                             "^/opt/ccl-arm/"
 ;;                             "/somedir/ccl-dev/"
 ;;                             (replace-regexp-in-string "^/root/" "/Users/someuser/" lisp-filename))))))
+
+;; (set-default 'slime-filename-translations
+;;              (list (list "^\\(arm64-sbc;\\)"
+;;                          (lambda (emacs-filename)
+;;                            (replace-regexp-in-string "^/Users/someuser/" "/root/" emacs-filename))
+;;                          (lambda (lisp-filename)
+;;                            (replace-regexp-in-string "^/root/" "/Users/someuser/" lisp-filename)))))
 
 
 (defun sbcl ()
