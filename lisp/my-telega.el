@@ -122,6 +122,13 @@
                         (my/telega-draft-compat-out draft)))))))
     args)
   (advice-add 'telega-server--send :filter-args
-              #'my/telega-server-send-compat))
+              #'my/telega-server-send-compat)
+  ;; telega replaced telega-company with capf-based completion (not
+  ;; enabled by default); wire it up and let company pop up right after
+  ;; typing "@" (default company-minimum-prefix-length of 3 delays it)
+  (defun my/telega-chat-completion-setup ()
+    (telega-completions-setup-capf)
+    (setq-local company-minimum-prefix-length 1))
+  (add-hook 'telega-chat-mode-hook #'my/telega-chat-completion-setup))
 
 (provide 'my-telega)
