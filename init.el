@@ -54,6 +54,7 @@
 (require 'my-mermaid)
 (require 'my-jsonnet)
 (require 'my-c)
+(require 'my-telega)
 
 ;; FIXME: this should not be needed
 (load custom-file)
