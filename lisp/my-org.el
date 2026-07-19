@@ -211,4 +211,20 @@
         (org-todo arg))
     (org-release-time)))
 
+(defun refresh-org-agenda ()
+  "Refresh all org agenda buffers."
+  (when (get-buffer "*Org Agenda*")
+    (org-agenda-maybe-redo)))
+
+(add-hook 'org-capture-after-finalize-hook 'refresh-org-agenda)
+
+(defun refresh-org-agenda-on-save ()
+  "Refresh Org agenda buffers if the current buffer is an Org mode
+     file."
+  (when (and (derived-mode-p 'org-mode)
+             (get-buffer "*Org Agenda*"))
+    (org-agenda-maybe-redo)))
+
+(add-hook 'after-save-hook 'refresh-org-agenda-on-save)
+
 (provide 'my-org)
