@@ -1,7 +1,5 @@
 ;; -*- lexical-binding: t -*-
 
-(defvar *is-a-mac*)
-
 (use-package zenburn-theme
   :init
   (load-theme 'zenburn t)
@@ -18,9 +16,14 @@
 
 (blink-cursor-mode t)
 
+;; initially:
 ;; https://www.lonecpluspluscoder.com/2015/09/14/using-the-hack-2-0-font-in-emacs-on-os-x/
+;; later:
+;; https://superuser.com/questions/692173/emacs-default-font-does-not-work-with-new-frames
 (when *is-a-mac*
-  (set-frame-font "-*-Source Code Pro-normal-normal-normal-*-13-*-*-*-m-0-iso10646-1")
+  (set-face-attribute
+   'default nil
+   :font "-*-Source Code Pro-normal-normal-normal-*-13-*-*-*-m-0-iso10646-1")
   (set-face-attribute
    'mode-line nil
    :font "-*-Source Code Pro-normal-normal-normal-*-10-*-*-*-m-0-iso10646-1")
