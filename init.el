@@ -57,6 +57,7 @@
 (require 'my-telega)
 (require 'my-elmacro)
 (require 'my-yang)
+(require 'my-jenkinsfile)
 
 ;; FIXME: this should not be needed
 (load custom-file)
