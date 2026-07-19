@@ -17,6 +17,12 @@
         telega-use-tracking-for '(or unmuted mentions))
   :config
   ;; unread/mention counts in the mode line
-  (telega-mode-line-mode 1))
+  (telega-mode-line-mode 1)
+  ;; clicking internal pseudo-messages (unread bar, date breaks) sends
+  ;; openMessageContent with :id -1 => "Telega error 400: Message not found"
+  (advice-add 'telega-msg-open-content :around
+              (lambda (orig msg &optional clicked-p)
+                (unless (telega-msg-internal-p msg)
+                  (funcall orig msg clicked-p)))))
 
 (provide 'my-telega)
