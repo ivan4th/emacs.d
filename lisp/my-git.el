@@ -67,6 +67,56 @@
   (advice-add 'forge-create-pullreq--read-args :override
               #'my/forge-create-pullreq--read-args))
 
+;; GitLab configuration for gitlab.k.sctech.ru
+(defcustom i4-gitlab-sctech-handle "akadmin"
+  "GitLab handle to use for gitlab.k.sctech.ru"
+  :type 'string
+  :group 'i4-config)
+
+(defcustom i4-1pw-gitlab-sctech-api-token-ref "op://Personal/gitlab.k.sctech.ru auth token/credential"
+  "1password reference for the gitlab.k.sctech.ru API token"
+  :type 'string
+  :group 'i4-config)
+
+;; Register the self-hosted GitLab in forge-alist
+(with-eval-after-load 'forge
+  (add-to-list 'forge-alist
+               '("gitlab.k.sctech.ru"
+                 "gitlab.k.sctech.ru/api/v4"
+                 "gitlab.k.sctech.ru"
+                 forge-gitlab-repository)))
+
+;; Auth mapping for forge access to gitlab.k.sctech.ru
+(define-auth-source-1pw-mapping
+ "gitlab.k.sctech.ru/api/v4"
+ #'(lambda () (concat i4-gitlab-sctech-handle "^forge"))
+ 'i4-1pw-gitlab-sctech-api-token-ref)
+
+;; GitLab configuration for gitlab.netgate.com
+(defcustom i4-gitlab-netgate-handle "ishvedunov"
+  "GitLab handle to use for gitlab.netgate.com"
+  :type 'string
+  :group 'i4-config)
+
+(defcustom i4-1pw-gitlab-netgate-api-token-ref "op://Personal/gitlab.netgate.com token/credential"
+  "1password reference for the gitlab.netgate.com API token"
+  :type 'string
+  :group 'i4-config)
+
+;; Register gitlab.netgate.com in forge-alist
+(with-eval-after-load 'forge
+  (add-to-list 'forge-alist
+               '("gitlab.netgate.com"
+                 "gitlab.netgate.com/api/v4"
+                 "gitlab.netgate.com"
+                 forge-gitlab-repository)))
+
+;; Auth mapping for forge access to gitlab.netgate.com
+(define-auth-source-1pw-mapping
+ "gitlab.netgate.com/api/v4"
+ #'(lambda () (concat i4-gitlab-netgate-handle "^forge"))
+ 'i4-1pw-gitlab-netgate-api-token-ref)
+
 (use-package git-link
   :bind (("\C-cgl" . git-link))
   :config
