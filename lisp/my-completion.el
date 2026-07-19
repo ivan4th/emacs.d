@@ -44,6 +44,7 @@
 
 (use-package consult
   :bind (("\C-x\C-r" . consult-recent-file)
+         ("\C-xb"    . consult-buffer)
 	 ("\C-cig"   . consult-git-grep))
   :after (vertico))
 
