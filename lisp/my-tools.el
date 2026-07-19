@@ -192,4 +192,9 @@
     (shell-command "echo -n `uuid -v4`" t)
     (goto-char (mark))))
 
+;; (re)compilation
+(set-default 'compilation-scroll-output t)
+(global-set-key "\C-cib" 'compile)
+(global-set-key "\C-cir" 'recompile)
+
 (provide 'my-tools)
