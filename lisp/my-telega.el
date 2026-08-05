@@ -123,6 +123,38 @@
     args)
   (advice-add 'telega-server--send :filter-args
               #'my/telega-server-send-compat)
+  ;; Telegram sometimes leaves a phantom unread-mentions counter on a
+  ;; chat when the mentioning messages are deleted before being read
+  ;; (a server-side quirk); telega then shows @N in the mode line
+  ;; forever, since it can only clear mentions by viewing the actual
+  ;; messages.  Reset such counters via readAllChatMentions.
+  (defun i4-telega-clear-stale-mentions ()
+    "Clear unread-mention counters of chats whose mention messages are gone."
+    (interactive)
+    (unless (telega-server-live-p)
+      (user-error "telega is not running"))
+    (let ((cleared nil))
+      (maphash
+       (lambda (_id chat)
+         (when (> (or (plist-get chat :unread_mention_count) 0) 0)
+           (let ((found (telega-server--call
+                         (list :@type "searchChatMessages"
+                               :chat_id (plist-get chat :id)
+                               :query ""
+                               :from_message_id 0
+                               :offset 0
+                               :limit 1
+                               :filter '(:@type "searchMessagesFilterUnreadMention")))))
+             (when (seq-empty-p (plist-get found :messages))
+               (telega-server--send
+                (list :@type "readAllChatMentions"
+                      :chat_id (plist-get chat :id)))
+               (push (telega-chat-title chat) cleared)))))
+       telega--chats)
+      (if cleared
+          (message "Cleared stale mentions in: %s"
+                   (mapconcat #'identity cleared ", "))
+        (message "No stale mention counters found"))))
   ;; telega replaced telega-company with capf-based completion (not
   ;; enabled by default); wire it up and let company pop up right after
   ;; typing "@" (default company-minimum-prefix-length of 3 delays it)

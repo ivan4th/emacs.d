@@ -61,6 +61,8 @@
 (require 'my-mcp)
 (require 'my-claude)
 (require 'my-ledger)
+(require 'my-yobalist)
+(require 'my-slack)
 
 ;; FIXME: this should not be needed
 (load custom-file)
