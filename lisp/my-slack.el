@@ -31,15 +31,33 @@ concealed fields named token and cookie."
   "Remove anything that looks like a Slack secret from STRING."
   (replace-regexp-in-string "xox[a-z]-[^ \t\n\"]*" "xox<redacted>" string))
 
-(defun my/slack-op-read (field)
-  "Read FIELD of `i4-slack-op-item' from 1Password via the op CLI."
-  (with-temp-buffer
-    (let ((status (call-process "op" nil t nil "read" "-n"
-                                (concat i4-slack-op-item "/" field))))
-      (unless (eq status 0)
-        (error "op read failed for %s: %s" field
-               (my/slack-redact (string-trim (buffer-string)))))
-      (string-trim (buffer-string)))))
+(defun my/slack-op-credentials ()
+  "Return (TOKEN . COOKIE) read from `i4-slack-op-item' via the op CLI.
+Both fields are fetched in a single op invocation so that a locked
+1Password session asks to unlock at most once."
+  (let ((parts (my/slack-op-parts)))
+    (with-temp-buffer
+      (let ((status (call-process "op" nil t nil
+                                  "item" "get" (cdr parts)
+                                  "--vault" (car parts)
+                                  "--format" "json"
+                                  "--fields" "label=token,label=cookie"
+                                  "--reveal")))
+        (unless (eq status 0)
+          (error "op item get failed: %s"
+                 (my/slack-redact (string-trim (buffer-string)))))
+        (goto-char (point-min))
+        (let* ((parsed (json-parse-buffer :object-type 'alist :array-type 'list))
+               ;; op returns a bare object when only one field comes back
+               (fields (if (alist-get 'label parsed) (list parsed) parsed))
+               (field (lambda (label)
+                        (or (alist-get 'value
+                                       (seq-find (lambda (f)
+                                                   (equal (alist-get 'label f) label))
+                                                 fields))
+                            (error "No %s field in 1Password item %s"
+                                   label (cdr parts))))))
+          (cons (funcall field "token") (funcall field "cookie")))))))
 
 (defun my/slack-forget-team (name)
   "Disconnect and unregister every registered team called NAME.
@@ -60,14 +78,15 @@ leave the old team behind with a dead token."
 (defun my/slack-register-team ()
   "Register `i4-slack-team-name' with credentials from 1Password."
   (my/slack-forget-team i4-slack-team-name)
-  (slack-register-team
-   :name i4-slack-team-name
-   :token (my/slack-op-read "token")
-   :cookie (my/slack-op-read "cookie")
-   :full-and-display-names t
-   :default t
-   ;; using slack-extra-subscribed-channels because I can change it dynamically
-   :subscribed-channels nil))
+  (let ((creds (my/slack-op-credentials)))
+    (slack-register-team
+     :name i4-slack-team-name
+     :token (car creds)
+     :cookie (cdr creds)
+     :full-and-display-names t
+     :default t
+     ;; using slack-extra-subscribed-channels because I can change it dynamically
+     :subscribed-channels nil)))
 
 (defun i4-slack-connect ()
   "Register the Slack team from 1Password credentials and connect."
