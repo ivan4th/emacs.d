@@ -95,13 +95,43 @@ leave the old team behind with a dead token."
   (my/slack-register-team)
   (slack-start))
 
+(defun my/slack-normalize-cookie (raw)
+  "Normalize RAW into the cookie format emacs-slack expects.
+RAW may be a whole Cookie: request header copied from the browser's
+network tab; everything but d, d-s and lc is dropped.  The d value must
+come first and unnamed because `slack-team-d-cookie' takes everything
+before the first semicolon as its value."
+  (let ((values (make-hash-table :test 'equal))
+        (raw (replace-regexp-in-string "\\`[Cc]ookie:[ \t]*" "" (string-trim raw))))
+    (dolist (part (split-string raw ";" t "[ \t\n]+"))
+      (cond
+       ;; already in emacs-slack's format: bare, unnamed d value
+       ((string-prefix-p "xoxd-" part) (puthash "d" part values))
+       ((string-match "\\`\\([^=]+\\)=\\(.*\\)\\'" part)
+        (puthash (string-trim (match-string 1 part))
+                 (string-trim (match-string 2 part))
+                 values))))
+    (let ((d (gethash "d" values))
+          (d-s (gethash "d-s" values))
+          (lc (gethash "lc" values)))
+      (unless d
+        (error "No d cookie found in the pasted value"))
+      (unless (and d-s lc)
+        (message "Warning: no %s cookie found; websocket auth may fail"
+                 (if d-s "lc" "d-s")))
+      (concat d
+              (when d-s (concat "; d-s=" d-s))
+              (when lc (concat "; lc=" lc))))))
+
 (defun i4-slack-store-credentials (token cookie)
   "Store Slack TOKEN and COOKIE in 1Password, then reconnect.
-Interactively both are read without echoing; they are never written
-to disk or to the kill ring."
+COOKIE may be pasted as a whole Cookie: header; see
+`my/slack-normalize-cookie'.  Interactively both are read without
+echoing; they are never written to disk or to the kill ring."
   (interactive
-   (list (read-passwd "Slack token (xoxc-...): ")
-         (read-passwd "Slack cookie (xoxd-...; d-s=...; lc=...): ")))
+   (list (string-trim (read-passwd "Slack token (xoxc-...): "))
+         (my/slack-normalize-cookie
+          (read-passwd "Slack cookie (whole Cookie: header, or xoxd-...; d-s=...; lc=...): "))))
   (let ((parts (my/slack-op-parts)))
     (unwind-protect
         (with-temp-buffer
