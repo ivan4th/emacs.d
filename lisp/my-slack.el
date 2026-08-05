@@ -19,6 +19,24 @@ concealed fields named token and cookie."
   :group 'i4-config
   :type 'string)
 
+(defcustom i4-slack-client-url "https://netgate.slack.com/"
+  "Slack web client opened by `i4-slack-refresh-credentials'.
+Not my.slack.com/customize, which upstream suggests: that page is
+restricted to full members on this workspace, and the token is
+available from any signed-in client page anyway."
+  :group 'i4-config
+  :type 'string)
+
+(defconst my/slack-token-snippet
+  (concat "copy((window.TS && TS.boot_data && TS.boot_data.api_token) || "
+          "Object.entries(localStorage).flatMap(([, v]) => { try { "
+          "const o = JSON.parse(v); return o && o.teams ? Object.values(o.teams) : [] "
+          "} catch (e) { return [] } }).filter(t => t.token)"
+          ".map(t => t.team_id + \" \" + t.name + \" \" + t.token).join(\"\\n\"))")
+  "JavaScript copying the Slack API token to the clipboard.
+Reads TS.boot_data on the legacy client and falls back to scanning
+localStorage, which is where the modern client keeps per-team tokens.")
+
 (defun my/slack-op-parts ()
   "Return (VAULT . ITEM) parsed from `i4-slack-op-item'."
   (if (string-match "\\`op://\\([^/]+\\)/\\([^/]+\\)\\'" i4-slack-op-item)
@@ -88,11 +106,27 @@ leave the old team behind with a dead token."
      ;; using slack-extra-subscribed-channels because I can change it dynamically
      :subscribed-channels nil)))
 
-(defun i4-slack-connect ()
-  "Register the Slack team from 1Password credentials and connect."
-  (interactive)
-  (require 'slack)
-  (my/slack-register-team)
+(defun my/slack-team-registered-p ()
+  "Whether a team called `i4-slack-team-name' is currently registered."
+  (and (boundp 'slack-teams-by-token)
+       (catch 'found
+         (maphash (lambda (_token team)
+                    (when (equal (slack-team-name team) i4-slack-team-name)
+                      (throw 'found t)))
+                  slack-teams-by-token)
+         nil)))
+
+(defun i4-slack-connect (&optional refresh)
+  "Connect to Slack, registering the team from 1Password if needed.
+With prefix argument REFRESH, re-read the credentials even if the team
+is already registered."
+  (interactive "P")
+  ;; emacs-slack.el is the feature use-package keys :config on; requiring
+  ;; plain slack loads the same code but leaves :config, and hence the
+  ;; team registration, unrun.
+  (require 'emacs-slack)
+  (when (or refresh (not (my/slack-team-registered-p)))
+    (my/slack-register-team))
   (slack-start))
 
 (defun my/slack-normalize-cookie (raw)
@@ -146,21 +180,38 @@ echoing; they are never written to disk or to the kill ring."
       (clear-string token)
       (clear-string cookie)))
   (message "Slack credentials updated in 1Password")
-  (i4-slack-connect))
+  (i4-slack-connect t))
 
 (defun i4-slack-refresh-credentials ()
   "Open the browser flow for fresh Slack credentials.
 Copies the token-grabbing snippet to the kill ring and displays
 upstream's instructions; run `i4-slack-store-credentials' afterwards."
   (interactive)
-  (require 'slack)
-  (kill-new "window.prompt(\"your api token is: \", TS.boot_data.api_token)")
-  (browse-url "https://my.slack.com/customize")
+  (kill-new my/slack-token-snippet)
+  (browse-url i4-slack-client-url)
   (with-current-buffer (get-buffer-create "*slack refresh instructions*")
     (let ((inhibit-read-only t))
       (erase-buffer)
-      (insert (funcall slack-edit-refresh-token-instructions
-                       slack-refresh-token-instructions)))
+      (insert (format "Refreshing Slack credentials for %s\n
+Token
+  1. Open the developer tools console in the tab that just opened.
+     Chrome refuses pasted input until you type \"allow pasting\" once.
+  2. Yank the snippet now at the head of the kill ring and run it.  It
+     copies the token to the clipboard without displaying it.
+
+Cookie
+  3. Switch to the Network tab and reload the page.
+  4. Click any request to this host, find Request Headers, and copy the
+     whole value of the \"cookie:\" header (use the Raw toggle if it is
+     truncated).  Do not URL-decode it; the d value has to keep its
+     %%XX escapes.
+
+Store
+  5. C-c S P, token at the first prompt, the whole cookie header at the
+     second.  Only d, d-s and lc are kept.  Both go straight into
+     1Password (%s); neither touches disk or the kill ring.
+"
+                      i4-slack-client-url i4-slack-op-item)))
     (goto-char (point-min))
     (view-mode 1))
   (pop-to-buffer "*slack refresh instructions*")
