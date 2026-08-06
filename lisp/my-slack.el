@@ -259,13 +259,21 @@ Store
         (lambda (instructions)
           (concat instructions
                   "\nThen run M-x i4-slack-store-credentials to save them in 1Password.\n")))
-  ;; Registering the team needs 1Password, which may prompt; do it when
-  ;; the package is actually loaded rather than at startup, and let it
-  ;; fail softly so the rest of the package stays usable.
-  (condition-case err
-      (my/slack-register-team)
-    (error (message "my-slack: could not register team: %s (use C-c S S to retry)"
-                    (error-message-string err)))))
+  ;; Registering the team needs 1Password, which may prompt; do it when the
+  ;; package is actually loaded rather than at startup, and let it fail
+  ;; softly so the rest of the package stays usable.
+  ;;
+  ;; Skip it entirely when a team is already registered.  Re-registering
+  ;; silently drops a live connection: my/slack-register-team forgets the
+  ;; team first, and slack-register-team only reconnects when a team with
+  ;; the same token is still in slack-teams-by-token, so the fresh team is
+  ;; registered but never connected.  Without this guard, merely reloading
+  ;; this file disconnects Slack and leaves every room list empty.
+  (unless (my/slack-team-registered-p)
+    (condition-case err
+        (my/slack-register-team)
+      (error (message "my-slack: could not register team: %s (use C-c S S to retry)"
+                      (error-message-string err))))))
 
 (use-package alert
   :commands (alert)
