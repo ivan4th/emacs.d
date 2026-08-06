@@ -251,6 +251,9 @@ Store
          )
   :custom
   (slack-extra-subscribed-channels (mapcar 'intern (list "some-channel")))
+  ;; only one team is registered, so don't prompt to pick it; works because
+  ;; my/slack-register-team passes :default t, which sets slack-current-team
+  (slack-prefer-current-team t)
   :config
   (setq slack-edit-refresh-token-instructions
         (lambda (instructions)
