@@ -153,4 +153,5 @@ Some features require external tools:
 - Go: gopls, goimports
 - Common Lisp: SBCL, quicklisp
 - Jsonnet: jsonnetfmt
+- OpenSCAD: openscad (used by scad-mode preview/export)
 - Authentication: 1Password CLI (op)

@@ -58,6 +58,7 @@
 (require 'my-elmacro)
 (require 'my-yang)
 (require 'my-jenkinsfile)
+(require 'my-scad)
 (require 'my-mcp)
 (require 'my-claude)
 (require 'my-ledger)

@@ -14,7 +14,7 @@
   (setf telega-chat-input-markups '("markdown2" nil "org")
         ;; list chats with new messages in the mode line (tracking.el),
         ;; cycle through them with C-c C-SPC
-        telega-use-tracking-for '(or unmuted mentions))
+        telega-use-tracking-for '(or unmuted mention))
   :config
   ;; unread/mention counts in the mode line
   (telega-mode-line-mode 1)
