@@ -45,6 +45,7 @@
 (require 'my-makefile)
 (require 'my-shellscript)
 (require 'my-kubernetes)
+(require 'my-tramp)
 (require 'my-vterm)
 (require 'my-yaml)
 (require 'my-chatgpt)
