@@ -161,6 +161,28 @@
   (defun my/telega-chat-completion-setup ()
     (telega-completions-setup-capf)
     (setq-local company-minimum-prefix-length 1))
-  (add-hook 'telega-chat-mode-hook #'my/telega-chat-completion-setup))
+  (add-hook 'telega-chat-mode-hook #'my/telega-chat-completion-setup)
+  ;; telega-capf-username marks itself :exclusive no, which makes
+  ;; completion--capf-wrapper pre-validate the input with a plain
+  ;; prefix-matching try-completion against the table, bypassing the
+  ;; external completion style.  TDLib finds members by real name too
+  ;; ("@Еле" -> "@username"), but such candidates are not prefix
+  ;; matches, so the wrapper discarded the whole capf and only literal
+  ;; @username prefixes completed.  Drop :exclusive to skip the check;
+  ;; nothing else completes @-tokens in a chatbuf, so exclusivity is
+  ;; fine.
+  (defun my/telega-capf-username-noexclusive (res)
+    (if (null res)
+        res
+      (append (seq-take res 3)
+              (cl-loop for (k v) on (nthcdr 3 res) by #'cddr
+                       unless (eq k :exclusive)
+                       nconc (list k v)))))
+  (advice-add 'telega-capf-username :filter-return
+              #'my/telega-capf-username-noexclusive)
+  ;; company's popup can't render avatar images, so the mention
+  ;; annotation showed the avatar's underlying fallback text (first
+  ;; letter of the name), e.g. "ЕЕлена ..."
+  (setq telega-completions-username-show-avatars nil))
 
 (provide 'my-telega)
