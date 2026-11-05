@@ -51,6 +51,10 @@
       org-todo-keywords '("TODO" "DONE")
       org-todo-keyword-faces '(("TODO" . (:foreground "orange" :weight bold :underline t)))
       org-log-done t
+      ;; Пиналкин (~/work/nagme) counts postponements from these log lines,
+      ;; so Emacs and the bot must both write them.
+      org-log-reschedule 'time
+      org-log-redeadline 'time
       org-agenda-prefix-format
       '((agenda . " %i %-12:c%?-12t% s%l")
         (todo . " %i %-12:c")
@@ -226,5 +230,84 @@
     (org-agenda-maybe-redo)))
 
 (add-hook 'after-save-hook 'refresh-org-agenda-on-save)
+
+;;; Journal: journal.org is an org datetree (what the "j" capture template
+;;; and Пиналкин's `journal` command both write). These helpers give it the
+;;; two things org-journal has and a datetree lacks: jump to a day, and
+;;; calendar marks on days that have entries (press `j' on a date in
+;;; M-x calendar to open it).
+
+(defun i4-journal-file () (i4-org-path "journal.org"))
+
+(defun i4-journal-goto-date (&optional date)
+  "Open journal.org at DATE's datetree node (created if missing).
+DATE is (month day year) as in `calendar'; prompts with `org-read-date'."
+  (interactive)
+  (require 'org-datetree)
+  (let* ((time (if date
+                   (org-encode-time 0 0 0 (nth 1 date) (nth 0 date) (nth 2 date))
+                 (org-read-date nil t nil "Journal day: ")))
+         (d (decode-time time)))
+    (find-file (i4-journal-file))
+    (org-datetree-find-date-create (list (nth 4 d) (nth 3 d) (nth 5 d)))
+    (org-show-context)
+    (org-show-subtree)))
+
+(defun i4-journal-days ()
+  "List of (month day year) days that have journal entries."
+  (let ((file (i4-journal-file)) days)
+    (when (file-exists-p file)
+      (with-temp-buffer
+        (insert-file-contents file)
+        (goto-char (point-min))
+        (while (re-search-forward
+                "^\\*\\*\\* \\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\)" nil t)
+          (let ((y (string-to-number (match-string 1)))
+                (m (string-to-number (match-string 2)))
+                (d (string-to-number (match-string 3))))
+            ;; a day node counts only if it has at least one entry below it
+            (when (save-excursion
+                    (forward-line 1)
+                    (looking-at "^\\*\\*\\*\\* "))
+              (push (list m d y) days))))))
+    days))
+
+(defun i4-journal-mark-calendar ()
+  "Mark days with journal entries in the calendar."
+  (dolist (d (i4-journal-days))
+    (when (calendar-date-is-visible-p d)
+      (calendar-mark-visible-date d 'org-date))))
+
+(defun i4-journal-calendar-open ()
+  "From the calendar, open the journal at the date under point."
+  (interactive)
+  (i4-journal-goto-date (calendar-cursor-to-date t)))
+
+(with-eval-after-load 'calendar
+  (add-hook 'calendar-today-visible-hook #'i4-journal-mark-calendar)
+  (add-hook 'calendar-today-invisible-hook #'i4-journal-mark-calendar)
+  (define-key calendar-mode-map (kbd "j") #'i4-journal-calendar-open))
+
+(global-set-key (kbd "C-c i j") #'i4-journal-goto-date)
+
+;;; Save org buffers under the org dir a few idle seconds after editing.
+;;; Пиналкин edits the same files from the bot pod (mutagen mirror), and
+;;; auto-revert never reloads a modified buffer: an edit left unsaved for
+;;; days hides the bot's changes and a later save overwrites them
+;;; (2026-10: dela.org stayed modified for three days). Buffers whose file
+;;; changed on disk are skipped, so a real conflict is never overwritten
+;;; silently; resolve those by hand.
+
+(defun i4-org-auto-save-visited-p ()
+  "Non-nil for org buffers under `i4-org-dir' whose file is unchanged on disk."
+  (and buffer-file-name
+       (derived-mode-p 'org-mode)
+       (string-prefix-p (file-truename (file-name-as-directory i4-org-dir))
+                        (file-truename buffer-file-name))
+       (verify-visited-file-modtime)))
+
+(setq auto-save-visited-interval 5
+      auto-save-visited-predicate #'i4-org-auto-save-visited-p)
+(auto-save-visited-mode 1)
 
 (provide 'my-org)
