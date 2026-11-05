@@ -2,6 +2,9 @@
 
 (require 'my-auth-source)
 
+(when *is-a-mac*
+  (setq magit-git-executable "/opt/homebrew/bin/git"))
+
 (defcustom i4-github-handle ""
   "GitHub handle to use"
   :type 'string
